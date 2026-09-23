@@ -1,26 +1,48 @@
-import unittest
+"""
+Flask server for the Emotion Detection application.
+
+Provides a web interface that analyzes text supplied by the user
+and returns the detected emotion scores and the dominant emotion.
+"""
+
+from flask import Flask, render_template, request
 from EmotionDetection import emotion_detector
 
-class TestEmotionDetector(unittest.TestCase):
-    def test_emotion_detector(self):
-        # Test case for joy
-        result_1 = emotion_detector('I am glad this happened')
-        self.assertEqual(result_1['dominant_emotion'], 'joy')
+app = Flask("Emotion Detector")
 
-        # Test case for anger
-        result_2 = emotion_detector('I am really mad about this')
-        self.assertEqual(result_2['dominant_emotion'], 'anger')
 
-        # Test case for disgust
-        result_3 = emotion_detector('I feel disgusted just hearing about this')
-        self.assertEqual(result_3['dominant_emotion'], 'disgust')
+@app.route("/emotionDetector")
+def emot_detector():
+    """
+    Analyze the text provided by the user.
 
-        # Test case for sadness
-        result_4 = emotion_detector('I am so sad about this')
-        self.assertEqual(result_4['dominant_emotion'], 'sadness')
+    Returns a formatted string containing the score for each emotion
+    and the dominant emotion, or an error message if the input is blank.
+    """
+    text_to_analyze = request.args.get('textToAnalyze')
+    response = emotion_detector(text_to_analyze)
 
-        # Test case for fear
-        result_5 = emotion_detector('I am really afraid that this will happen')
-        self.assertEqual(result_5['dominant_emotion'], 'fear')
+    dominant_emotion = response['dominant_emotion']
 
-unittest.main()
+    if dominant_emotion is None:
+        return "Invalid text! Please try again!"
+
+    return (
+        f"For the given statement, the system response is "
+        f"'anger': {response['anger']}, "
+        f"'disgust': {response['disgust']}, "
+        f"'fear': {response['fear']}, "
+        f"'joy': {response['joy']} and "
+        f"'sadness': {response['sadness']}. "
+        f"The dominant emotion is {dominant_emotion}."
+    )
+
+
+@app.route("/")
+def render_index_page():
+    """Render the main application page."""
+    return render_template('index.html')
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
